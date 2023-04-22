@@ -144,12 +144,12 @@ parse s = down [] s
 
 --
 step :: Combinator -> [Combinator]
-step (I :@ x) = [x]
-step (S :@ x :@ y :@ z) = [x :@ z :@ (y :@ z)]
-step (K :@ x :@ y) = [x]
-step (I :@ x :@ z) = [x :@ z]
-step (S :@ x :@ y :@ z :@ f) = [x :@ z :@ (y :@ z) :@ f]
-step (K :@ x :@ y :@z) = [x :@ z]
+step (I :@ x) = [x] ++ [I :@ x' | x' <- step x]
+step (S :@ x :@ y :@ z) = [x :@ z :@ (y :@ z)] ++ [S :@ x' :@ y :@ z | x' <- step x] ++ [S :@ x :@ y' :@ z| y' <- step y] ++ [S :@ x :@ y :@ z' | z' <- step z]  
+step (K :@ x :@ y) = [x] ++ [K :@ x' :@y | x' <- step x] ++[K :@ x :@y' | y' <- step y]
+--step (I :@ x :@ z) = [x :@ z]
+--step (S :@ x :@ y :@ z :@ f) = [x :@ z :@ (y :@ z) :@ f]
+--step (K :@ x :@ y :@ z) = [x :@ z]
 
 step (x :@ y) = [ x' :@ y | x' <- step x] ++ [ x :@  y' | y' <- step y]
 step z = []
