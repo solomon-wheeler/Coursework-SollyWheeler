@@ -145,22 +145,10 @@ parse s = down [] s
 --
 step :: Combinator -> [Combinator]
 step (I :@ x) = [x] ++ [I :@ x' | x' <- step x]
-step (S :@ x :@ y :@ z) = [x :@ z :@ (y :@ z)] ++ [S :@ x' :@ y :@ z | x' <- step x] ++ [S :@ x :@ y' :@ z| y' <- step y] ++ [S :@ x :@ y :@ z' | z' <- step z]  
-step (K :@ x :@ y) = [x] ++ [K :@ x' :@y | x' <- step x] ++[K :@ x :@y' | y' <- step y]
---step (I :@ x :@ z) = [x :@ z]
---step (S :@ x :@ y :@ z :@ f) = [x :@ z :@ (y :@ z) :@ f]
---step (K :@ x :@ y :@ z) = [x :@ z]
-
-step (x :@ y) = [ x' :@ y | x' <- step x] ++ [ x :@  y' | y' <- step y]
+step (S :@ x :@ y :@ z) = [x :@ z :@ (y :@ z)] ++ [S :@ x' :@ y :@ z | x' <- step x] ++ [S :@ x :@ y' :@ z | y' <- step y] ++ [S :@ x :@ y :@ z' | z' <- step z]
+step (K :@ x :@ y) = [x] ++ [K :@ x' :@ y | x' <- step x] ++ [K :@ x :@ y' | y' <- step y]
+step (x :@ y) = [x' :@ y | x' <- step x] ++ [x :@ y' | y' <- step y]
 step z = []
-
-{- step I = []
-step S = []
-step K = []
-step (S :@ x :@ y ) = [S :@ x :@ y]
-step (S :@ x) = [S :@ x]
-step (K :@ x) = [K :@ x]
--}
 
 run :: Combinator -> IO ()
 run x = do
@@ -168,17 +156,25 @@ run x = do
   let y = step x
   if null y
     then return ()
-  else run (head y)
+    else run (head y)
 
 ------------------------- Assignment 2: Combinators to Lambda-terms
 
 toLambda :: Combinator -> Term
-toLambda = undefined
+toLambda (I) = Lambda "x" (Variable "x")
+toLambda (K) = (Lambda "x" (Lambda "y" (Variable "x")))
+toLambda (S) = Lambda "x" (Lambda "y" (Lambda "z" (Apply (Apply (Variable "x") (Variable "z")) (Apply (Variable "y") (Variable "z")))))
+toLambda (V x) = Variable x
+toLambda (f :@ g) = Apply (toLambda f) (toLambda g)
 
 ------------------------- Assignment 3: Lambda-terms to Combinators
 
 abstract :: Var -> Combinator -> Combinator
-abstract = undefined
+abstract (x) (V y) = if x == y then I else (K :@ V y)
+abstract (x)(y) = (K :@ y)
+abstract (x) (y :@ z) = S :@ (abstract x y) :@(abstract x z)
+
+
 
 toCombinator :: Term -> Combinator
 toCombinator = undefined
