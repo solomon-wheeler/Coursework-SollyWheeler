@@ -171,21 +171,31 @@ toLambda (f :@ g) = Apply (toLambda f) (toLambda g)
 
 abstract :: Var -> Combinator -> Combinator
 abstract (x) (V y) = if x == y then I else (K :@ V y)
-abstract (x)(y) = (K :@ y)
 abstract (x) (y :@ z) = S :@ (abstract x y) :@(abstract x z)
+abstract x y = (K :@ y)
 
 
 
 toCombinator :: Term -> Combinator
-toCombinator = undefined
+toCombinator (Variable x) = V x
+toCombinator (Lambda x m) = abstract x (toCombinator m)
+toCombinator (Apply m n) = (toCombinator m) :@ (toCombinator n)
+
 
 ------------------------- Assignment 4: Estimating growth
 
 sizeL :: Term -> Int
-sizeL = undefined
+sizeL (Apply x y) = 1 + sizeL(x) + sizeL(y)
+sizeL (Lambda x m) = 1 + sizeL (m)
+sizeL (Variable x) = 1 
 
 sizeC :: Combinator -> Int
-sizeC = undefined
+sizeC (I) = 1
+sizeC (K) = 1
+sizeC (S)= 1
+sizeC (V x) = 1
+sizeC(f :@ g) = 1 + sizeC(f) + sizeC(g)
+
 
 series :: Int -> Term
 series = undefined
